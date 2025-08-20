@@ -6,10 +6,6 @@ export default function LeadForm({ values, onChange, onSubmitEmail, onSubmitPhon
    * - onSubmitEmail
    * - onSubmitPhone
    * Includes accessible labels and validation hints.
-   *
-   * Explicit requirements (per Airscale docs):
-   * - Phone enrichment requires a valid LinkedIn URL.
-   * - Email enrichment requires Company Domain (recommended), or a valid LinkedIn URL if domain is not available.
    */
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -27,7 +23,7 @@ export default function LeadForm({ values, onChange, onSubmitEmail, onSubmitPhon
     <form className="lead-form" onSubmit={(e) => e.preventDefault()} aria-label="Lead Enrichment Form">
       <div className="form-row">
         <label htmlFor="name">
-          Full Name <span aria-hidden="true" style={{ color: '#c00' }}>*</span>
+          Full Name <span aria-hidden="true" style={{ color: '#ff5d5d' }}>*</span>
         </label>
         <input
           id="name"
@@ -41,12 +37,12 @@ export default function LeadForm({ values, onChange, onSubmitEmail, onSubmitPhon
       </div>
       <div className="form-row">
         <label htmlFor="company">
-          Company <span aria-hidden="true" style={{ color: '#c00' }}>*</span>
+          Company <span aria-hidden="true" style={{ color: '#ff5d5d' }}>*</span>
         </label>
         <input
           id="company"
           name="company"
-          placeholder="e.g., Worldwide Charters"
+          placeholder="e.g., Acme Inc."
           value={values.company}
           onChange={handleChange}
           required
@@ -63,7 +59,7 @@ export default function LeadForm({ values, onChange, onSubmitEmail, onSubmitPhon
         <input
           id="domain"
           name="domain"
-          placeholder="e.g., worldwidecharters.com"
+          placeholder="e.g., acme.com"
           value={values.domain}
           onChange={handleChange}
           aria-describedby="email-req-hint"
@@ -109,7 +105,7 @@ export default function LeadForm({ values, onChange, onSubmitEmail, onSubmitPhon
       </div>
 
       <small className="muted" aria-live="polite">
-        Subject to API rate limits and credits. Include Company Domain and/or LinkedIn for best results.
+        Requests are subject to reasonable rate limits. Include Company Domain and/or LinkedIn for best results.
       </small>
 
       <div className="form-actions">

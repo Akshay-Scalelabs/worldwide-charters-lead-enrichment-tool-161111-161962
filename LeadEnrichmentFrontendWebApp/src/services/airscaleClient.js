@@ -1,20 +1,14 @@
 /**
- * Airscale API client
+ * API client (via secure proxy)
  * Note: Never embed secrets in client code. This client uses:
  * - A configurable base URL from REACT_APP_AIRSCALE_BASE_URL for non-sensitive config.
- * - A relative proxy path (/api/airscale) intended to be backed by a Netlify Function or proxy
- *   that injects the AIRSCALE_API_KEY securely at the edge. See README for setup.
- *
- * This implementation aligns with the latest official Airscale docs:
- * - Endpoints: /v1/email and /v1/phone (proxied via /api/airscale/v1/*)
- * - Auth: API key in header (added by proxy), content-type application/json
- * - Request fields: name, company, domain, email, linkedin as applicable
- * - Response handling: parse known fields and surface rate-limit and credit errors
+ * - A relative proxy path intended to be backed by a Netlify Function or proxy
+ *   that injects API keys securely at the edge. See README for setup.
  */
 
 // PUBLIC_INTERFACE
 export async function findEmail({ name, company, domain, linkedin }) {
-  /** Find an email for a single contact via Airscale.
+  /** Find an email for a single contact.
    * Parameters:
    *  - name: Full name of the contact (required by our UI workflow)
    *  - company: Company name (required by our UI workflow)
@@ -29,14 +23,14 @@ export async function findEmail({ name, company, domain, linkedin }) {
     linkedin,
   });
 
-  return postToAirscale("/v1/email", payload, {
+  return postToProxy("/v1/email", payload, {
     feature: "email",
   });
 }
 
 // PUBLIC_INTERFACE
 export async function findPhone({ name, company, domain, email }) {
-  /** Find a phone number for a single contact via Airscale.
+  /** Find a phone number for a single contact.
    * Parameters:
    *  - name: Full name of the contact (required by our UI workflow)
    *  - company: Company name (required by our UI workflow)
@@ -51,7 +45,7 @@ export async function findPhone({ name, company, domain, email }) {
     email,
   });
 
-  return postToAirscale("/v1/phone", payload, {
+  return postToProxy("/v1/phone", payload, {
     feature: "phone",
   });
 }
@@ -72,20 +66,16 @@ function buildPayload(obj) {
 }
 
 /**
- * Post JSON to Airscale via secure proxy.
- * - The proxy must inject:
- *    - X-Api-Key (or Authorization) per docs
- *    - Any additional headers required by Airscale
+ * Post JSON via secure proxy.
+ * - The proxy must inject authentication headers and handle upstream API details.
  * - This client adds only Content-Type and handles standard error translation.
  */
-async function postToAirscale(path, body, { feature } = {}) {
-  // Prefer a secure proxy path so secrets are never sent to browser.
-  // Netlify setup will map /api/airscale/* to a function that calls Airscale with the API key.
+async function postToProxy(path, body, { feature } = {}) {
   const baseUrl = process.env.REACT_APP_AIRSCALE_BASE_URL || "";
   const viaProxyUrl = `/api/airscale${path}`;
   const directUrl = baseUrl ? `${baseUrl}${path}` : null;
 
-  // Use the proxy by default; fallback to direct only if explicitly allowed
+  // Use proxy by default to avoid exposing secrets
   const url = viaProxyUrl || directUrl;
 
   const controller = new AbortController();
@@ -96,7 +86,6 @@ async function postToAirscale(path, body, { feature } = {}) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        // Do NOT attach secrets here; proxy adds authentication header securely.
       },
       body: JSON.stringify(body),
       signal: controller.signal,
@@ -114,7 +103,7 @@ async function postToAirscale(path, body, { feature } = {}) {
     const maybeJson = await safeJson(res);
 
     if (!res.ok) {
-      // Normalize known error cases per docs: 401/403 auth, 402/429 credits/rate limit, 422 validation, 5xx upstream
+      // Normalize known error cases: 401/403 auth, 402/429 credits/rate limit, 422 validation, 5xx upstream
       const errMsg = normalizeErrorMessage(res.status, maybeJson, rateLimit, feature);
       return { success: false, error: errMsg, status: res.status, rateLimit, data: maybeJson };
     }
@@ -137,26 +126,24 @@ async function safeJson(res) {
 }
 
 function normalizeErrorMessage(status, body, rateLimit, feature) {
-  const base = feature ? `Airscale ${feature} error` : "Airscale error";
-  // Rate limit or credits exhausted
+  const base = feature ? `${capitalize(feature)} enrichment` : "Request";
   if (status === 429) {
     const resetNote = rateLimit?.reset ? ` Try again after ${new Date(Number(rateLimit.reset) * 1000).toLocaleTimeString()}.` : "";
-    return `${base}: Rate limit exceeded (429).${resetNote}`;
+    return `${base}: rate limit exceeded (429).${resetNote}`;
   }
   if (status === 402) {
-    return `${base}: Credits exhausted (402). Please top up your Airscale credits.`;
+    return `${base}: credits exhausted (402). Please try again later.`;
   }
   if (status === 401 || status === 403) {
-    return `${base}: Authentication failed (${status}). Check API key configuration on the serverless proxy.`;
+    return `${base}: authentication failed (${status}). Check serverless proxy configuration.`;
   }
   if (status === 422) {
     const detail = extractFirstError(body);
-    return `${base}: Invalid request (422)${detail ? ` - ${detail}` : ""}.`;
+    return `${base}: invalid request (422)${detail ? ` - ${detail}` : ""}.`;
   }
   if (status >= 500) {
-    return `${base}: Upstream service error (${status}). Please try again.`;
+    return `${base}: upstream service error (${status}). Please try again.`;
   }
-  // Fallback
   const message = body?.message || body?.error || body?.raw || "";
   return `${base}: ${status}${message ? ` - ${message}` : ""}`;
 }
@@ -171,4 +158,9 @@ function extractFirstError(body) {
   if (body?.error) return typeof body.error === "string" ? body.error : JSON.stringify(body.error);
   if (body?.message) return body.message;
   return "";
+}
+
+function capitalize(s) {
+  if (!s) return s;
+  return s.charAt(0).toUpperCase() + s.slice(1);
 }

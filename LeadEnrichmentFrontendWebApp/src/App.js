@@ -7,14 +7,14 @@ import { findEmail, findPhone } from './services/airscaleClient';
 
 // PUBLIC_INTERFACE
 function App() {
-  /** Worldwide Charters Lead Enrichment single-page app.
+  /** Scalelabs-branded Lead Enrichment single-page app.
    * Provides:
    *  - Branded UI for entering lead details
    *  - Two separate actions: Find Email, Find Phone Number
    *  - Real-time validation, alerts, and results panel
    *  - Accessibility and responsiveness
    *
-   * Business rules per Airscale docs (reflected in UI messaging/validation):
+   * Business rules:
    *  - Phone enrichment: LinkedIn URL is mandatory.
    *  - Email enrichment: Provide company domain (recommended). If domain is not available,
    *    a valid LinkedIn URL can be used instead.
@@ -23,7 +23,7 @@ function App() {
     () => window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches,
     []
   );
-  const [theme, setTheme] = useState(prefersDark ? 'dark' : 'light');
+  const [theme, setTheme] = useState(prefersDark ? 'dark' : 'dark'); // default to dark for on-brand look
 
   const [values, setValues] = useState({
     name: '',
@@ -55,7 +55,7 @@ function App() {
     return true;
   };
 
-  // Additional per-action validations aligned with docs
+  // Additional per-action validations
   const hasValidLinkedIn = (url) => {
     if (!url) return false;
     try {
@@ -154,13 +154,13 @@ function App() {
     const res = await findPhone({ name, company, domain, email });
     setLoading(false);
     if (!res.success) {
-      // Add remaining rate limit to message if present
       const rl = res.rateLimit;
       const hint =
         rl?.remaining !== null && rl?.remaining !== undefined
           ? ` (remaining: ${rl.remaining ?? 'n/a'})`
           : '';
-      setAlert({ type: 'error', message: (res.error || 'Failed to fetch phone.') + hint });
+      // Generic/Scalelabs-branded error text
+      setAlert({ type: 'error', message: (res.error || 'Request failed.') + hint });
       return;
     }
     const normalized = normalizeResult(res.data);
@@ -175,10 +175,13 @@ function App() {
     <div className="App">
       <div className="header">
         <div className="container">
-          <div className="brand" aria-label="Worldwide Charters Lead Enrichment">
-            Worldwide Charters — Lead Enrichment
+          <div className="brand" aria-label="Scalelabs — Lead Enrichment">
+            Scalelabs — Lead Enrichment
           </div>
-          <p className="subtitle">Single-contact email and phone searches powered by Airscale</p>
+          <div className="brand-badge" aria-hidden="true">
+            ⚡ Real-time contact enrichment
+          </div>
+          <p className="subtitle">Single-contact email and phone searches. Fast, modern, and on-brand.</p>
         </div>
       </div>
 
@@ -197,9 +200,9 @@ function App() {
         </section>
 
         <p className="footer">
-          For internal Worldwide Charters use only. Not indexed or publicly listed.
+          For internal use only. Not indexed or publicly listed.
           <br />
-          Minimal attribution: Built with Scalelabs enrichment — <a href="https://airscale.io" target="_blank" rel="noreferrer">Airscale</a>.
+          Built by <a href="https://www.scalelabs.ai" target="_blank" rel="noreferrer">Scalelabs</a>.
         </p>
       </main>
 

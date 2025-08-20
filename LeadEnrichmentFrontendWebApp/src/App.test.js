@@ -3,6 +3,6 @@ import App from './App';
 
 test('renders app title', () => {
   render(<App />);
-  const title = screen.getByText(/Worldwide Charters — Lead Enrichment/i);
+  const title = screen.getByText(/Scalelabs — Lead Enrichment/i);
   expect(title).toBeInTheDocument();
 });
