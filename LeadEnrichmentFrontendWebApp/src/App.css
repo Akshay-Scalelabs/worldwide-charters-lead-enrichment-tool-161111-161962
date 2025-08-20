@@ -1,104 +1,222 @@
-/* CSS Variables for Theme Management */
+/* Worldwide Charters Branding and Theme */
 :root {
-  /* Light theme colors */
+  --wc-navy: #0B2A3B;
+  --wc-sky: #2EA1D4;
+  --wc-gold: #F0C14B;
   --bg-primary: #ffffff;
-  --bg-secondary: #f8f9fa;
-  --text-primary: #282c34;
-  --text-secondary: #61dafb;
-  --border-color: #e9ecef;
-  --button-bg: #007bff;
+  --bg-secondary: #f5f7fa;
+  --text-primary: #0B2A3B;
+  --text-secondary: #2EA1D4;
+  --border-color: #e0e6ed;
+  --button-bg: var(--wc-sky);
   --button-text: #ffffff;
+  --success: #1f9d55;
+  --error: #c0392b;
+  --muted: #6b7280;
 }
 
 [data-theme="dark"] {
-  /* Dark theme colors */
-  --bg-primary: #1a1a1a;
-  --bg-secondary: #282c34;
-  --text-primary: #ffffff;
-  --text-secondary: #61dafb;
-  --border-color: #404040;
-  --button-bg: #0056b3;
+  --bg-primary: #0b1220;
+  --bg-secondary: #101826;
+  --text-primary: #e5e7eb;
+  --text-secondary: #7dd3fc;
+  --border-color: #273449;
+  --button-bg: #12739a;
   --button-text: #ffffff;
 }
 
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; }
+
 .App {
-  text-align: center;
-  background-color: var(--bg-primary);
+  min-height: 100%;
+  background: linear-gradient(180deg, var(--bg-secondary), var(--bg-primary));
   color: var(--text-primary);
-  min-height: 100vh;
-  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.header {
+  padding: 32px 16px 16px;
+  text-align: center;
+}
+.brand {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--wc-navy);
+}
+.subtitle {
+  font-size: 14px;
+  color: var(--muted);
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+.container {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 16px;
 }
 
-.App-header {
-  background-color: var(--bg-secondary);
-  min-height: 100vh;
+.card {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 6px 24px rgba(2, 6, 23, 0.06);
+}
+
+.lead-form .form-row {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.lead-form label {
+  font-weight: 600;
+  color: var(--wc-navy);
+}
+.lead-form input {
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 10px 12px;
+  outline: none;
   color: var(--text-primary);
-  transition: background-color 0.3s ease;
-  position: relative;
+  background: var(--bg-primary);
+}
+.lead-form input:focus {
+  border-color: var(--wc-sky);
+  box-shadow: 0 0 0 3px rgba(46, 161, 212, 0.25);
 }
 
-.App-link {
-  color: var(--text-secondary);
-  transition: color 0.3s ease;
+.form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+  flex-wrap: wrap;
 }
 
-.theme-toggle {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  background-color: var(--button-bg);
-  color: var(--button-text);
+.btn {
   border: none;
   border-radius: 8px;
-  padding: 10px 20px;
-  font-size: 14px;
-  font-weight: 600;
+  padding: 10px 14px;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.08s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+.btn:active { transform: translateY(1px); }
+
+.btn-primary {
+  background: var(--button-bg);
+  color: var(--button-text);
+}
+.btn-primary:hover { filter: brightness(1.05); }
+
+.btn-secondary {
+  background: var(--wc-gold);
+  color: #1f2937;
+}
+.btn-secondary:hover { filter: brightness(1.03); }
+
+.btn-small {
+  padding: 6px 10px;
+  font-size: 12px;
 }
 
-.theme-toggle:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-  opacity: 0.9;
+.results {
+  margin-top: 20px;
+}
+.results h2 {
+  margin: 0 0 12px;
+  color: var(--wc-navy);
+}
+.results-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border: 1px dashed var(--border-color);
+  border-radius: 10px;
+}
+.results-list li {
+  display: grid;
+  grid-template-columns: 1.2fr 2fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border-bottom: 1px dashed var(--border-color);
+}
+.results-list li:last-child { border-bottom: none; }
+
+.results-list .key {
+  font-weight: 700;
+  color: var(--wc-navy);
+}
+.results-list .value {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.theme-toggle:active {
-  transform: translateY(0);
+.alert {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.alert-info {
+  background: #e0f2fe;
+  color: #0c4a6e;
+  border: 1px solid #bae6fd;
+}
+.alert-success {
+  background: #dcfce7;
+  color: #065f46;
+  border: 1px solid #bbf7d0;
+}
+.alert-error {
+  background: #fee2e2;
+  color: #7f1d1d;
+  border: 1px solid #fecaca;
+}
+.alert .alert-close {
+  margin-left: auto;
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.footer {
+  margin: 24px auto 40px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 12px;
+}
+.footer a {
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+.footer a:hover { text-decoration: underline; }
+
+.theme-toggle {
+  position: fixed;
+  bottom: 18px;
+  right: 18px;
+  background-color: var(--wc-sky);
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 10px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 6px 24px rgba(2, 6, 23, 0.2);
 }
 
-/* Responsive design for mobile */
-@media (max-width: 768px) {
-  .theme-toggle {
-    top: 10px;
-    right: 10px;
-    padding: 8px 16px;
-    font-size: 12px;
+/* Responsive */
+@media (max-width: 640px) {
+  .results-list li {
+    grid-template-columns: 1fr;
+    gap: 6px;
   }
 }

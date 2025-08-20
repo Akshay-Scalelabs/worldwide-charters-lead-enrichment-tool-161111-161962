@@ -1,82 +1,89 @@
-# Lightweight React Template for KAVIA
+# Worldwide Charters — Lead Enrichment Frontend (React)
 
-This project provides a minimal React template with a clean, modern UI and minimal dependencies.
+A custom-branded, lightweight React SPA for internal lead enrichment using Airscale (Scalelabs). No login; unlisted URL only.
 
 ## Features
+- Single-contact enrichment with two separate actions: “Find Email” and “Find Phone Number”
+- Worldwide Charters branding, responsive and accessible UI
+- Real-time validation and feedback
+- Secure Airscale integration via Netlify environment variables and edge/serverless proxy
+- Prevents SEO indexing (robots.txt + meta noindex)
+- Minimal Scalelabs attribution in the footer
+- Netlify-ready configuration (SPA redirects, headers, CSP)
 
-- **Lightweight**: No heavy UI frameworks - uses only vanilla CSS and React
-- **Modern UI**: Clean, responsive design with KAVIA brand styling
-- **Fast**: Minimal dependencies for quick loading times
-- **Simple**: Easy to understand and modify
+## Quick start
+- Node 18+
+- Install: `npm install`
+- Run dev: `npm start`
+- Build: `npm run build` (Netlify uses `CI=false npm run build` via netlify.toml)
 
-## Getting Started
+## Environment variables
+Create a local `.env` based on `.env.example`. Do not place secrets in `.env` that will be committed.
 
-In the project directory, you can run:
+- REACT_APP_AIRSCALE_BASE_URL: Non-secret base URL (e.g., https://api.airscale.dev)
 
-### `npm start`
+Secrets:
+- AIRSCALE_API_KEY: Do not put in React env (would expose in bundle). Configure in Netlify site settings:
+  - Netlify dashboard -> Site settings -> Build & deploy -> Environment -> Environment variables
+  - Add variable: `AIRSCALE_API_KEY` with your secret value.
 
-Runs the app in development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## Secure Airscale Integration
+Client code never reads AIRSCALE_API_KEY. Instead:
+- Frontend sends requests to a relative path `/api/airscale/*`.
+- Configure a Netlify Function or proxy that:
+  - Reads `AIRSCALE_API_KEY` from Netlify’s environment
+  - Calls the Airscale API using server-side fetch with the API key
+  - Returns JSON to the client
 
-### `npm test`
+This keeps secrets out of the client bundle and browser.
 
-Launches the test runner in interactive watch mode.
+Example function pseudo-code (create in `netlify/functions/airscale.js` if you choose to add functions):
+```js
+export async function handler(event) {
+  const { path } = event; // e.g. /find/email or /find/phone
+  const apiKey = process.env.AIRSCALE_API_KEY;
+  const base = process.env.AIRSCALE_BASE_URL || 'https://api.airscale.dev';
 
-### `npm run build`
+  const res = await fetch(`${base}${path}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Api-Key': apiKey
+    },
+    body: event.body
+  });
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-## Customization
-
-### Colors
-
-The main brand colors are defined as CSS variables in `src/App.css`:
-
-```css
-:root {
-  --kavia-orange: #E87A41;
-  --kavia-dark: #1A1A1A;
-  --text-color: #ffffff;
-  --text-secondary: rgba(255, 255, 255, 0.7);
-  --border-color: rgba(255, 255, 255, 0.1);
+  return {
+    statusCode: res.status,
+    headers: { 'Content-Type': 'application/json' },
+    body: await res.text()
+  };
 }
 ```
+Then configure a redirect in `netlify.toml` to map `/api/airscale/*` to that function. Note: This repo currently sets headers and SPA redirects; add the function mapping if you implement functions.
 
-### Components
+## Netlify setup
+- Connect this repo to Netlify
+- Build command: `CI=false npm run build` (already set in `netlify.toml`)
+- Publish directory: `build`
+- Environment:
+  - AIRSCALE_API_KEY: your secret
+  - Optional: AIRSCALE_BASE_URL (defaults to https://api.airscale.dev)
+- Headers and CSP are set via `netlify.toml` and `public/_headers`
+- SEO blocked with `public/robots.txt` and meta noindex in `public/index.html`
 
-This template uses pure HTML/CSS components instead of a UI framework. You can find component styles in `src/App.css`. 
+## Accessibility
+- Proper labels, aria-live regions, and disabled states
+- Keyboard-friendly buttons and focus outlines
 
-Common components include:
-- Buttons (`.btn`, `.btn-large`)
-- Container (`.container`)
-- Navigation (`.navbar`)
-- Typography (`.title`, `.subtitle`, `.description`)
+## Project structure
+- src/components: LeadForm, ResultsPanel, Alert
+- src/services: airscaleClient (no secrets)
+- public: index.html, robots.txt, _headers
+- netlify.toml: SPA redirects, security headers
 
-## Learn More
+## Notes
+- Keep usage internal; do not share URL publicly.
+- For local testing without functions, you can mock `/api/airscale/*` using a dev proxy or mock server.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+License: Internal use for Worldwide Charters.
