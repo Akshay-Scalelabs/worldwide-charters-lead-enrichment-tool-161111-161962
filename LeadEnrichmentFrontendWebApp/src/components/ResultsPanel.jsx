@@ -20,6 +20,9 @@ export default function ResultsPanel({ result }) {
   return (
     <section className="results" aria-live="polite" aria-atomic="true">
       <h2>Enrichment Results</h2>
+      <p className="muted" style={{ marginTop: 0 }}>
+        Tip: Email works best with Company Domain (or a valid LinkedIn if no domain). Phone requires a LinkedIn profile URL.
+      </p>
       {items.length === 0 ? (
         <p>No data found. Try adjusting inputs.</p>
       ) : (

@@ -13,6 +13,11 @@ function App() {
    *  - Two separate actions: Find Email, Find Phone Number
    *  - Real-time validation, alerts, and results panel
    *  - Accessibility and responsiveness
+   *
+   * Business rules per Airscale docs (reflected in UI messaging/validation):
+   *  - Phone enrichment: LinkedIn URL is mandatory.
+   *  - Email enrichment: Provide company domain (recommended). If domain is not available,
+   *    a valid LinkedIn URL can be used instead.
    */
   const prefersDark = useMemo(
     () => window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches,
@@ -41,9 +46,49 @@ function App() {
     setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
   };
 
+  // Validate only the base fields required for both actions
   const validateBase = () => {
     if (!values.name?.trim() || !values.company?.trim()) {
-      setAlert({ type: 'error', message: 'Please provide both Full Name and Company.' });
+      setAlert({ type: 'error', message: 'Full Name and Company are required.' });
+      return false;
+    }
+    return true;
+  };
+
+  // Additional per-action validations aligned with docs
+  const hasValidLinkedIn = (url) => {
+    if (!url) return false;
+    try {
+      const u = new URL(url);
+      return /(^|\.)linkedin\.com$/i.test(u.hostname);
+    } catch {
+      return false;
+    }
+  };
+
+  const validateForEmail = () => {
+    // Email enrichment requires either company domain or LinkedIn URL
+    const hasDomain = Boolean(values.domain?.trim());
+    const hasLinkedIn = hasValidLinkedIn(values.linkedin?.trim());
+    if (!hasDomain && !hasLinkedIn) {
+      setAlert({
+        type: 'error',
+        message:
+          'For email enrichment, provide Company Domain (recommended) or a valid LinkedIn URL.'
+      });
+      return false;
+    }
+    return true;
+  };
+
+  const validateForPhone = () => {
+    // Phone enrichment requires LinkedIn URL (mandatory)
+    if (!hasValidLinkedIn(values.linkedin?.trim())) {
+      setAlert({
+        type: 'error',
+        message:
+          'LinkedIn URL is required for phone enrichment. Please enter a valid LinkedIn profile URL.'
+      });
       return false;
     }
     return true;
@@ -81,6 +126,8 @@ function App() {
 
   const handleFindEmail = async () => {
     if (!validateBase()) return;
+    if (!validateForEmail()) return;
+
     setLoading(true);
     setAlert({ type: 'info', message: 'Searching for email...' });
     setResult(null);
@@ -98,6 +145,8 @@ function App() {
 
   const handleFindPhone = async () => {
     if (!validateBase()) return;
+    if (!validateForPhone()) return;
+
     setLoading(true);
     setAlert({ type: 'info', message: 'Searching for phone number...' });
     setResult(null);
@@ -107,13 +156,19 @@ function App() {
     if (!res.success) {
       // Add remaining rate limit to message if present
       const rl = res.rateLimit;
-      const hint = rl?.remaining !== null && rl?.remaining !== undefined ? ` (remaining: ${rl.remaining ?? "n/a"})` : "";
+      const hint =
+        rl?.remaining !== null && rl?.remaining !== undefined
+          ? ` (remaining: ${rl.remaining ?? 'n/a'})`
+          : '';
       setAlert({ type: 'error', message: (res.error || 'Failed to fetch phone.') + hint });
       return;
     }
     const normalized = normalizeResult(res.data);
     setResult(normalized);
-    setAlert({ type: 'success', message: normalized?.phone ? 'Phone number found.' : 'No phone number found.' });
+    setAlert({
+      type: 'success',
+      message: normalized?.phone ? 'Phone number found.' : 'No phone number found.'
+    });
   };
 
   return (
