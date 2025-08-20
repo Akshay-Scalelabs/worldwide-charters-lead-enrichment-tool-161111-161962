@@ -1,0 +1,4 @@
+{
+    "command": "npm run test",
+    "working_directory": "/home/kavia/workspace/code-generation/worldwide-charters-lead-enrichment-tool-161111-161962/LeadEnrichmentFrontendWebApp"
+}
