@@ -6,6 +6,8 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   letter-spacing: 0.1px;
+  background: #F7F8FB; /* soft, light background matching --bg-primary */
+  color: #171A21;      /* default text for non-app-root areas */
 }
 
 code {
