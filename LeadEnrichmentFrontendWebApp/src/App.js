@@ -105,7 +105,10 @@ function App() {
     const res = await findPhone({ name, company, domain, email });
     setLoading(false);
     if (!res.success) {
-      setAlert({ type: 'error', message: res.error || 'Failed to fetch phone.' });
+      // Add remaining rate limit to message if present
+      const rl = res.rateLimit;
+      const hint = rl?.remaining !== null && rl?.remaining !== undefined ? ` (remaining: ${rl.remaining ?? "n/a"})` : "";
+      setAlert({ type: 'error', message: (res.error || 'Failed to fetch phone.') + hint });
       return;
     }
     const normalized = normalizeResult(res.data);

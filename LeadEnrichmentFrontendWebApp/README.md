@@ -40,27 +40,47 @@ This keeps secrets out of the client bundle and browser.
 Example function pseudo-code (create in `netlify/functions/airscale.js` if you choose to add functions):
 ```js
 export async function handler(event) {
-  const { path } = event; // e.g. /find/email or /find/phone
+  // event.path will look like: /.netlify/functions/airscale/v1/email
+  // We want to forward to Airscale as /v1/email or /v1/phone
   const apiKey = process.env.AIRSCALE_API_KEY;
   const base = process.env.AIRSCALE_BASE_URL || 'https://api.airscale.dev';
 
-  const res = await fetch(`${base}${path}`, {
+  // Extract the path after the function name, e.g., /v1/email
+  const forwardPath = event.path.replace(/^.*\/airscale/, '');
+
+  const res = await fetch(`${base}${forwardPath}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      // Per Airscale docs you can send API key via X-Api-Key header.
       'X-Api-Key': apiKey
+      // If docs prefer Authorization: Bearer <key>, adjust here accordingly.
+      // 'Authorization': `Bearer ${apiKey}`
     },
     body: event.body
   });
 
+  // Surface rate limit headers so the client can show hints
+  const headers = {
+    'Content-Type': 'application/json',
+    'x-ratelimit-limit': res.headers.get('x-ratelimit-limit') || '',
+    'x-ratelimit-remaining': res.headers.get('x-ratelimit-remaining') || '',
+    'x-ratelimit-reset': res.headers.get('x-ratelimit-reset') || ''
+  };
+
   return {
     statusCode: res.status,
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: await res.text()
   };
 }
 ```
+
 Then configure a redirect in `netlify.toml` to map `/api/airscale/*` to that function. Note: This repo currently sets headers and SPA redirects; add the function mapping if you implement functions.
+
+Rate limits and credits:
+- The UI will show friendly messages on 429 (rate limit) and 402 (credits exhausted), using any x-ratelimit-* headers forwarded by the function.
+- Ensure your Netlify environment has adequate credits and monitor usage in Airscale dashboard.
 
 ## Netlify setup
 - Connect this repo to Netlify

@@ -23,17 +23,21 @@ export default function LeadForm({ values, onChange, onSubmitEmail, onSubmitPhon
         <input id="company" name="company" placeholder="e.g., Worldwide Charters" value={values.company} onChange={handleChange} required />
       </div>
       <div className="form-row">
-        <label htmlFor="domain">Company Domain (optional)</label>
+        <label htmlFor="domain">Company Domain (optional, recommended)</label>
         <input id="domain" name="domain" placeholder="e.g., worldwidecharters.com" value={values.domain} onChange={handleChange} />
       </div>
       <div className="form-row">
-        <label htmlFor="email">Email (optional)</label>
+        <label htmlFor="email">Known Email (optional, improves phone accuracy)</label>
         <input id="email" name="email" type="email" placeholder="e.g., jane@company.com" value={values.email} onChange={handleChange} />
       </div>
       <div className="form-row">
         <label htmlFor="linkedin">LinkedIn URL (optional)</label>
         <input id="linkedin" name="linkedin" type="url" placeholder="e.g., https://www.linkedin.com/in/janedoe" value={values.linkedin} onChange={handleChange} />
       </div>
+
+      <small className="muted" aria-live="polite">
+        Note: Subject to API rate limits and available credits. Provide domain or LinkedIn when possible for best results.
+      </small>
 
       <div className="form-actions">
         <button
